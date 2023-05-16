@@ -2,15 +2,15 @@ import java.util.*;
 import java.io.IOException;
 import java.lang.InterruptedException;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.*;
 import org.apache.hadoop.mapreduce.lib.output.*;
-import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.GenericOptionsParser;
 
 public class IMDBStudent20190967 {
 	public static class MovieMapper extends Mapper<Object, Text, Text, IntWritable>{
@@ -23,27 +23,32 @@ public class IMDBStudent20190967 {
 			String genres = split[2];
 
 			StringTokenizer itr2 = new StringTokenizer(genres, "|");
+			
 			while(itr2.hasMoreTokens()) {
 				outputKey.set(itr2.nextToken().trim());
 				context.write(outputKey, outputVal);
 			}
 		}
 	}
+	
 	public static class MovieReducer extends Reducer<Text, IntWritable, Text, IntWritable>{
 		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException{
-			IntWritable outputVal = new IntWritable();
+			IntWritable output = new IntWritable();
 			int sum = 0;
+			
 			for(IntWritable v : values) {
 				sum += v.get();
 			}
-			outputVal.set(sum);
-			context.write(key, outputVal);
+			
+			output.set(sum);
+			context.write(key, output);
 		}
 	}
 	
 	public static void main(String[] args) throws Exception{
 		Configuration conf = new Configuration();
 		String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+		
 		if(otherArgs.length != 2){
 			System.err.println("Usage: IMDB <in> <out>"); 
    			System.exit(2);
